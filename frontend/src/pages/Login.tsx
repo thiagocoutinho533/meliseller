@@ -1,41 +1,38 @@
-import { useState } from 'react';
-import API from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import { useState, type FormEvent } from "react";
+import { useAuth } from "../auth/AuthContext";
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-
     try {
-      const response = await API.post('/auth/login', { email, senha });
-      localStorage.setItem('token', response.data.token);
-      alert('Login realizado com sucesso!');
-      navigate('/dashboard');
-    } catch (error) {
-      alert('Email ou senha inválidos');
+      await login(email, password);
+    } catch (err) {
+      setError("Falha ao autenticar. Verifique suas credenciais.");
     }
-  };
+  }
 
   return (
-    <div>
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
+    <div className="login-container">
+      <h1>Login</h1>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      <form onSubmit={handleSubmit}>
         <input
           type="email"
           placeholder="E-mail"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
         <input
           type="password"
           placeholder="Senha"
-          value={senha}
-          onChange={e => setSenha(e.target.value)}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           required
         />
         <button type="submit">Entrar</button>

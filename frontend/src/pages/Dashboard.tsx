@@ -1,8 +1,12 @@
+import { useAuth } from "../auth/AuthContext";
+
 export default function Dashboard() {
+  const { user, logout } = useAuth();
   return (
-    <div>
-      <h1>Bem-vindo ao Dashboard</h1>
-      <p>Aqui virão as funcionalidades do sistema.</p>
+    <div style={{ padding: 24 }}>
+      <h2>Dashboard</h2>
+      <p>Bem-vindo, {user?.name || user?.email}!</p>
+      <button onClick={logout}>Sair</button>
     </div>
   );
 }

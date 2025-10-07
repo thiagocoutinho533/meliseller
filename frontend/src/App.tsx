@@ -1,18 +1,11 @@
-// src/App.tsx
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./auth/AuthContext";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import { Routes, Route } from "react-router-dom";
+import Login from "./pages/Login"; // <- este novo
 
-export default function App() {
+export default function AppRoutes() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      {/* ...suas outras rotas */}
+    </Routes>
   );
 }

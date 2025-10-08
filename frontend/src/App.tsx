@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login"; // nome do arquivo com L maiúsculo
+import './styles/sign-in.css';
 
 function NotFound() {
   return <div style={{ padding: 24 }}>Rota não encontrada</div>;

@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../auth/AuthContext";
-import "bootstrap/dist/css/bootstrap.min.css";
-import '../styles/sign-in.css';
+import "../styles/sign-in.css"; // ✅ caminho corrigido
 
 export default function Login() {
   const { login } = useAuth();
@@ -16,6 +15,8 @@ export default function Login() {
     setLoading(true);
     try {
       await login(email, password);
+      // redirecionar para /dashboard se quiser:
+      // navigate("/dashboard");
     } catch {
       setError("Falha ao autenticar. Verifique suas credenciais.");
     } finally {
@@ -24,19 +25,19 @@ export default function Login() {
   }
 
   return (
-    <div className="d-flex align-items-center py-4 bg-body-tertiary vh-100">
+    <div className="d-flex align-items-center justify-content-center min-vh-100 bg-body-tertiary">
       <main className="form-signin w-100 m-auto">
-        <form onSubmit={handleSubmit} className="text-center">
+        <form onSubmit={handleSubmit}>
           <img
             className="mb-4"
-            src="/logo.svg" /* coloque seu logo em public/logo.svg se quiser */
-            alt=""
+            src="/logo.svg"
+            alt="Logo"
             width="72"
-            height="72"
+            height="57"
           />
-          <h1 className="h3 mb-3 fw-normal">Login</h1>
+          <h1 className="h3 mb-3 fw-normal text-center">Login</h1>
 
-          {error && <div className="alert alert-danger py-2">{error}</div>}
+          {error && <p className="text-danger text-center">{error}</p>}
 
           <div className="form-floating">
             <input
@@ -51,6 +52,7 @@ export default function Login() {
             />
             <label htmlFor="floatingInput">E-mail</label>
           </div>
+
           <div className="form-floating">
             <input
               type="password"
@@ -64,10 +66,17 @@ export default function Login() {
             <label htmlFor="floatingPassword">Senha</label>
           </div>
 
-          <button className="btn btn-primary w-100 py-2 mt-2" type="submit" disabled={loading}>
+          <button
+            className="btn btn-primary w-100 py-2 mt-2"
+            type="submit"
+            disabled={loading}
+          >
             {loading ? "Entrando..." : "Entrar"}
           </button>
-          <p className="mt-5 mb-3 text-body-secondary">&copy; {new Date().getFullYear()}</p>
+
+          <p className="mt-5 mb-3 text-body-secondary text-center">
+            &copy; {new Date().getFullYear()}
+          </p>
         </form>
       </main>
     </div>

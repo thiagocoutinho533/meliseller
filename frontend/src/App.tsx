@@ -1,16 +1,21 @@
 import { Routes, Route } from "react-router-dom";
-import Login from "./pages/Login"; // nome do arquivo com L maiúsculo
-import './styles/sign-in.css';
+import Login from "./pages/Login";
 
 function NotFound() {
-  return <div style={{ padding: 24 }}>Rota não encontrada</div>;
+  return (
+    <div style={{ padding: 20 }}>
+      <h3>Rota não encontrada</h3>
+    </div>
+  );
 }
 
 export default function AppRoutes() {
   return (
     <Routes>
+      {/* ✅ Login principal */}
       <Route path="/login" element={<Login />} />
-      <Route path="*" element={<NotFound />} /> {/* fallback útil para diagnosticar */}
+      {/* ✅ Rota padrão */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

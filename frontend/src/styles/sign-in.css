@@ -1,6 +1,10 @@
-html,
-body {
+html, body, #root {
   height: 100%;
+}
+
+/* Evita que layouts globais (grid, sidebar, etc.) afetem o login */
+#root {
+  display: block !important;
 }
 
 .form-signin {

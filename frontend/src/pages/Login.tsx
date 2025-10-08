@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../auth/AuthContext";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "./login.css"; // vamos criar já já
+import "./styles/signin.css"; // vamos criar já já
 
 export default function Login() {
   const { login } = useAuth();

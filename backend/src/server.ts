@@ -4,8 +4,10 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 
 import { ENV } from './config/env.js';
-import mlRoutes from './routes/ml.routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
+
+// importa as rotas TS (sem extensão)
+import * as mlRoutes from './routes/ml.routes.js';
 
 const app = express();
 
@@ -15,11 +17,11 @@ app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use(express.json({ limit: '2mb' }));
 app.use(morgan('dev'));
 
-// health checks (úteis para teste local e via proxy)
+// health checks
 app.get('/health', (_req, res) => res.json({ ok: true }));
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
-// rotas da API
+// rotas Mercado Livre
 app.use('/api/ml', mlRoutes);
 
 // 404 padrão
@@ -30,5 +32,5 @@ app.use(errorHandler);
 
 // start
 app.listen(ENV.PORT, () => {
-  console.log(`API listening on http://localhost:${ENV.PORT}`);
+  console.log(`✅ API listening on http://localhost:${ENV.PORT}`);
 });

@@ -1,0 +1,48 @@
+/* src/styles/layout.css */
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: #0d6efd; /* azul bootstrap */
+  color: #fff;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.sidebar nav {
+  display: grid;
+  gap: 8px;
+}
+
+.sidebar a {
+  color: #ffffffcc;
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.sidebar a:hover, .sidebar a.active {
+  background: #0b5ed7;
+  color: #fff;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+}
+
+.content {
+  background: #f8f9fa;
+  padding: 24px;
+}

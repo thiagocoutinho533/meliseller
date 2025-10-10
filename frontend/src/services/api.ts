@@ -1,7 +1,16 @@
-import axios from 'axios';
+// src/services/api.ts
+import axios from "axios";
 
-const API = axios.create({
-  baseURL: 'https://integraseller.com.br/api',
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "/api",
+  withCredentials: true, // se usar cookie para sessão
 });
 
-export default API;
+// Helper para token via LocalStorage (se você usa JWT no header)
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("auth_token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+export default api;

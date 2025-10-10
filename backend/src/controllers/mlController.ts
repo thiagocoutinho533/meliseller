@@ -1,106 +1,65 @@
-import { Request, Response } from 'express';
-import { addSeconds } from 'date-fns';
-import { ENV } from '../config/env.js';
-import { prisma } from '../db/prisma.js';
-import { exchangeCodeForToken } from '../utils/token.js';
-import { MLApi } from '../services/mlService.js';
+import axios from 'axios';
+import type { Request, Response } from 'express';
 
-export const MLController = {
-  // Retorna a URL de autorização do Mercado Livre
-  connectUrl: async (_req: Request, res: Response) => {
-    const url = new URL('https://auth.mercadolibre.com/authorization');
-    url.searchParams.set('response_type', 'code');
-    url.searchParams.set('client_id', ENV.ML_CLIENT_ID);
-    url.searchParams.set('redirect_uri', ENV.ML_REDIRECT_URI);
-    return res.json({ url: url.toString() });
-  },
+const ML_AUTH_URL = 'https://auth.mercadolivre.com.br/authorization';
+const ML_TOKEN_URL = 'https://api.mercadolibre.com/oauth/token';
 
-  // Callback do OAuth: troca code por tokens e salva/atualiza a conta
-  oauthCallback: async (req: Request, res: Response) => {
-    const code = req.query.code as string;
-    if (!code) return res.status(400).json({ error: 'Missing code' });
+function requiredEnv(key: string): string {
+  const v = process.env[key];
+  if (!v) throw new Error(`Missing env var: ${key}`);
+  return v;
+}
 
-    try {
-      const tokenData = await exchangeCodeForToken(code);
-      const tokenExpiresAt = addSeconds(new Date(), tokenData.expires_in);
+export async function getAuthUrl(_req: Request, res: Response) {
+  try {
+    const clientId = requiredEnv('ML_CLIENT_ID');
+    const redirectUri = requiredEnv('ML_REDIRECT_URI');
+    const state = 'login-' + Date.now();
 
-      // TODO: vincular ao usuário autenticado do seu sistema (req.user.id)
-      // MVP: cria/usa um admin fictício
-      const user = await prisma.user.upsert({
-        where: { email: 'admin@example.com' },
-        update: {},
-        create: { email: 'admin@example.com', passwordHash: 'demo' },
-      });
+    const url =
+      `${ML_AUTH_URL}?response_type=code` +
+      `&client_id=${encodeURIComponent(clientId)}` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&state=${encodeURIComponent(state)}`;
 
-      const account = await prisma.mLAccount.upsert({
-        where: { mlUserId: String(tokenData.user_id) },
-        update: {
-          accessToken: tokenData.access_token,
-          refreshToken: tokenData.refresh_token,
-          tokenExpiresAt,
-          scope: tokenData.scope,
-        },
-        create: {
-          userId: user.id,
-          mlUserId: String(tokenData.user_id),
-          accessToken: tokenData.access_token,
-          refreshToken: tokenData.refresh_token,
-          tokenExpiresAt,
-          scope: tokenData.scope,
-        },
-      });
+    res.json({ url });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erro ao gerar URL' });
+  }
+}
 
-      return res.json({
-        ok: true,
-        accountId: account.id,
-        mlUserId: account.mlUserId,
-        expiresAt: tokenExpiresAt,
-      });
-    } catch (e: any) {
-      return res
-        .status(500)
-        .json({ error: 'OAuth exchange failed', details: e?.response?.data ?? e?.message });
-    }
-  },
+export async function oauthCallback(req: Request, res: Response) {
+  try {
+    const code = req.query.code as string | undefined;
+    if (!code) return res.status(400).send('Código não informado');
 
-  // Info do usuário no ML (teste rápido do token)
-  me: async (req: Request, res: Response) => {
-    const { accountId } = req.params;
-    try {
-      const acc = await prisma.mLAccount.findUnique({ where: { id: accountId } });
-      if (!acc) return res.status(404).json({ error: 'Account not found' });
+    const clientId = requiredEnv('ML_CLIENT_ID');
+    const clientSecret = requiredEnv('ML_CLIENT_SECRET');
+    const redirectUri = requiredEnv('ML_REDIRECT_URI');
 
-      const me = await MLApi.getMe(acc.accessToken);
-      return res.json(me);
-    } catch (e: any) {
-      return res.status(500).json({ error: 'Failed to fetch me', details: e?.message });
-    }
-  },
+    const params = new URLSearchParams();
+    params.append('grant_type', 'authorization_code');
+    params.append('client_id', clientId);
+    params.append('client_secret', clientSecret);
+    params.append('code', code);
+    params.append('redirect_uri', redirectUri);
 
-  // Lista IDs de anúncios do vendedor
-  listItems: async (req: Request, res: Response) => {
-    const { accountId } = req.params;
-    try {
-      const data = await MLApi.listItems(accountId);
-      return res.json(data); // { results: ["MLB..."], paging: {...} }
-    } catch (e: any) {
-      return res.status(500).json({ error: 'Failed to list items', details: e?.message });
-    }
-  },
+    const { data } = await axios.post(ML_TOKEN_URL, params, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
 
-  // Endpoint público para receber webhooks do ML
-   webhook: async (req: Request, res: Response) => {
-    try {
-      const event = await prisma.webhookEvent.create({
-        data: {
-          topic: String(req.body.topic ?? 'unknown'),
-          payload: req.body,
-        },
-      });
-      // Sugestão: processar em fila (BullMQ) depois
-      return res.status(200).json({ ok: true, id: event.id });
-    } catch (e: any) {
-      return res.status(500).json({ error: 'Webhook failed', details: e?.message });
-    }
-  },
-}; // <- fecha o objeto MLController aqui
+    // data => { access_token, refresh_token, expires_in, user_id, ... }
+    // TODO: salvar no seu banco associado ao usuário logado
+
+    res.send(`
+      <html><body style="font-family:sans-serif">
+        <h3>Mercado Livre conectado com sucesso!</h3>
+        <p>Você já pode fechar esta aba e voltar ao sistema.</p>
+      </body></html>
+    `);
+  } catch (err: any) {
+    console.error(err?.response?.data || err?.message || err);
+    res.status(500).send('Erro no callback do Mercado Livre');
+  }
+}

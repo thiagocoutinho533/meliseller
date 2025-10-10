@@ -6,8 +6,8 @@ import morgan from 'morgan';
 import { ENV } from './config/env.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
-// importa as rotas TS (sem extensão)
-import * as mlRoutes from './routes/ml.routes.js';
+// IMPORTANTE: em TypeScript com "NodeNext", importe com sufixo .js
+import mlRoutes from './routes/ml.routes.js';
 
 const app = express();
 

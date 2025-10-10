@@ -49,8 +49,7 @@ export async function oauthCallback(req: Request, res: Response) {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
 
-    // data => { access_token, refresh_token, expires_in, user_id, ... }
-    // TODO: salvar no seu banco associado ao usuário logado
+    // TODO: salvar tokens por usuário
 
     res.send(`
       <html><body style="font-family:sans-serif">
